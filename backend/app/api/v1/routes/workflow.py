@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.workflow.graph import create_main_workflow
-from app.workflow.state import WorkflowState
+from app.services.workflow_runner_service import get_workflow_runner_service, WorkflowRunnerService
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -10,19 +9,8 @@ class WorkflowRequest(BaseModel):
     repository_summary: str
 
 @router.post("/run-workflow")
-async def run_workflow(request: WorkflowRequest):
+async def run_workflow(request: WorkflowRequest, workflow_runner: WorkflowRunnerService = Depends(get_workflow_runner_service)):
     try:
-        workflow = create_main_workflow()
-        initial_state = {
-            "github_issue": request.github_issue,
-            "repository_summary": request.repository_summary,
-            "debug_retries": 0,
-        }
-        
-        # In a real application, you would run this asynchronously
-        # and provide a way to check the status.
-        final_state = workflow.invoke(initial_state)
-        
-        return final_state
+        return workflow_runner.start_workflow(request.github_issue, request.repository_summary)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -46,11 +46,12 @@ class DebugAgent:
         test_results = self.test_runner.run_tests() # This should target the modified code
         
         success = not test_results["report"]["summary"]["failed"]
-        
-        state['retries'] = state.get('retries', 0) + 1
-        state['success'] = success
-        
-        return state
+
+        return {
+            "retries": state.get("retries", 0) + 1,
+            "success": success,
+            "test_results": test_results,
+        }
 
     def _decide_to_finish(self, state: DebugInput):
         if state['success'] or state['retries'] >= state['max_retries']:

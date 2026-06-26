@@ -6,6 +6,10 @@ from app.agents.reflection.schemas import ReflectionOutput
 from app.api.v1.schemas.test_runner import TestRunResult
 
 class WorkflowState(TypedDict):
+    workflow_id: Optional[str]
+    status: Optional[str]
+    current_agent: Optional[str]
+    progress: Optional[int]
     github_issue: str
     repository_summary: str
     plan: Optional[ExecutionPlan]

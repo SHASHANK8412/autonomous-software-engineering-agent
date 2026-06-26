@@ -1,9 +1,10 @@
 from sqlalchemy import create_engine, Column, Integer, String, Text, JSON, ForeignKey, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 import datetime
 
-DATABASE_URL = "postgresql://user:password@localhost/agent_db" # Replace with your actual DB URL
+from app.core.config import settings
+
+DATABASE_URL = settings.database_url
 
 Base = declarative_base()
 
@@ -52,8 +53,9 @@ class UserHistory(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+DBSessionLocal = SessionLocal
 
 def init_db():
     Base.metadata.create_all(bind=engine)

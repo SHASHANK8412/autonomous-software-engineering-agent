@@ -2,6 +2,8 @@ import redis
 import json
 from typing import Optional, Any
 
+from app.core.config import settings
+
 class RedisService:
     _instance = None
 
@@ -12,7 +14,7 @@ class RedisService:
 
     def __init__(self, host='localhost', port=6379, db=0):
         if not hasattr(self, 'initialized'):
-            self.client = redis.Redis(host=host, port=port, db=db)
+            self.client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
             self.initialized = True
 
     def set(self, key: str, value: Any, ex: Optional[int] = None):
@@ -28,7 +30,7 @@ class RedisService:
             try:
                 return json.loads(value)
             except json.JSONDecodeError:
-                return value.decode('utf-8')
+                return value
         return None
 
     def delete(self, key: str):
