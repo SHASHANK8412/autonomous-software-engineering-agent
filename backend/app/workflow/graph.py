@@ -1,6 +1,6 @@
 import json
 
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
 from app.agents.coding.coding_agent import get_coding_agent
@@ -196,8 +196,7 @@ def should_debug_or_finish(state: WorkflowState):
 
 
 def create_main_workflow():
-    memory = SqliteSaver.from_conn_string(":memory:")
-    workflow = StateGraph(WorkflowState, checkpointer=memory)
+    workflow = StateGraph(WorkflowState, checkpointer=MemorySaver())
 
     workflow.add_node("planner", planner_node)
     workflow.add_node("repository_search", repository_search_node)
