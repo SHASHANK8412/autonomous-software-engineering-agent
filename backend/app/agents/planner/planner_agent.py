@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, END
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_google_genai import GoogleGenerativeAI
+from app.services.gemini_service import get_gemini_service
 
 from .schemas import ExecutionPlan, PlannerInput
 from .prompts import PLANNER_PROMPT
@@ -35,6 +35,5 @@ class PlannerAgent:
         return graph.invoke(planner_input)
 
 def get_planner_agent():
-    # This should be configured with your actual LLM
-    llm = GoogleGenerativeAI(model="gemini-pro")
-    return PlannerAgent(llm)
+    gemini_service = get_gemini_service()
+    return PlannerAgent(gemini_service.model)

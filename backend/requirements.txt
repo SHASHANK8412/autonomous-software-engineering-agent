@@ -7,18 +7,12 @@ pydantic-settings==2.14.1
 # Agent stack (used in later milestones)
 langgraph==1.2.5
 langchain==1.3.9
-chromadb-client==0.4.24
 chromadb==1.5.9
 gitpython==3.1.50
-redis==8.0.0
 psycopg2-binary==2.9.12
 google-generativeai==0.8.6
 sqlalchemy==2.0.23
 redis==5.0.1
-
-# Tokenization (exact-token chunking)
-transformers==4.44.2
-sentencepiece==0.2.0
 
 # Testing
 
