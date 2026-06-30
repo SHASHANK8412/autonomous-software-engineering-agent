@@ -49,6 +49,17 @@ export const api = {
   repositorySummary: () => fetchJson<RepositorySummary>('/dashboard/repository-summary'),
   issues: () => fetchJson<IssueItem[]>('/dashboard/issues'),
   history: () => fetchJson<HistoryItem[]>('/dashboard/history'),
+  startWorkflow: async (github_issue: string, repository_summary: string, user_id = 'user@example.com') => {
+    const response = await fetch(`${API_BASE}/dashboard/workflow/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ github_issue, repository_summary, user_id }),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to start workflow: ${response.status}`);
+    }
+    return response.json() as Promise<{ workflow_id: string; status: string }>;
+  },
 };
 
 export function workflowSocketUrl() {

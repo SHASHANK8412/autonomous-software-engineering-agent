@@ -10,9 +10,15 @@ from app.api.v1.routes.test_runner import router as test_runner_router
 from app.api.v1.routes.reflection import router as reflection_router
 from app.api.v1.routes.vector_db import router as vector_db_router
 from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
+from app.core.logging import configure_logging, get_logger
 from app.db.models import init_db
 
 app = FastAPI(title="Autonomous Software Engineering Agent")
+configure_logging()
+register_exception_handlers(app)
+
+logger = get_logger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,6 +30,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_event() -> None:
+    logger.info("Starting Autonomous Software Engineering Agent backend")
     init_db()
 
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["dashboard"])
