@@ -16,6 +16,7 @@ frontend/tsconfig.tsbuildinfo
 
 # Local environment files
 .env
+backend/agent.db
 
 # OS and editor noise
 .DS_Store
