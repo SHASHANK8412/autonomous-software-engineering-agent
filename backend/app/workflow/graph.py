@@ -132,7 +132,9 @@ def planner_node(state: WorkflowState):
 def repository_search_node(state: WorkflowState):
     _advance(state, "Repository Search", 30, "Repository search node started.")
     retrieved_state = _get_repository_search_agent().run({"github_issue": state["github_issue"], "repository_summary": state["repository_summary"]})
-    retrieved_code = retrieved_state.get("retrieved_code") if isinstance(retrieved_state, dict) else retrieved_state
+    retrieved_code = retrieved_state.get("retrieved_code") if isinstance(retrieved_state, dict) and "retrieved_code" in retrieved_state else retrieved_state
+    if retrieved_code is None and isinstance(retrieved_state, dict):
+        retrieved_code = retrieved_state
     _store_ai_response(f"repo_search:{state['github_issue']}", retrieved_code)
     _advance(state, "Repository Search", 40, "Repository search node finished.")
     return {"retrieved_code": retrieved_code}
@@ -140,7 +142,17 @@ def repository_search_node(state: WorkflowState):
 
 def coding_node(state: WorkflowState):
     _advance(state, "Coding", 50, "Coding node started.")
-    generated_state = _get_coding_agent().run({"github_issue": state["github_issue"], "plan": state["plan"], "retrieved_code": state["retrieved_code"]})
+    plan = state.get("plan")
+    if plan is None:
+        plan_state = _get_planner_agent().run({"github_issue": state["github_issue"], "repository_summary": state["repository_summary"]})
+        plan = plan_state.get("plan") if isinstance(plan_state, dict) else plan_state
+
+    retrieved_code = state.get("retrieved_code")
+    if retrieved_code is None:
+        retrieved_state = _get_repository_search_agent().run({"github_issue": state["github_issue"], "repository_summary": state["repository_summary"]})
+        retrieved_code = retrieved_state.get("retrieved_code") if isinstance(retrieved_state, dict) and "retrieved_code" in retrieved_state else retrieved_state
+
+    generated_state = _get_coding_agent().run({"github_issue": state["github_issue"], "plan": plan or {"plan": []}, "retrieved_code": retrieved_code or {"relevant_files": []}})
     generated_code = generated_state.get("modified_files") if isinstance(generated_state, dict) else generated_state
     _store_ai_response(f"code:{state['github_issue']}", generated_code)
     _advance(state, "Coding", 60, "Coding node finished.")
@@ -150,7 +162,7 @@ def coding_node(state: WorkflowState):
 def testing_node(state: WorkflowState):
     _advance(state, "Testing", 70, "Testing node started.")
     test_results = test_runner.run_tests()
-    _store_log(f"Test results: {test_results.get('report', {}).get('summary', {})}")
+    _store_log(f"Test results: {test_results.get('summary', test_results.get('report', {}).get('summary', {}))}")
     _advance(state, "Testing", 75, "Testing node finished.")
     return {"test_results": test_results}
 
@@ -187,7 +199,9 @@ def review_node(state: WorkflowState):
 
 
 def should_reflect_or_review(state: WorkflowState):
-    failed = state["test_results"]["report"]["summary"]["failed"]
+    test_results = state.get("test_results") or {}
+    summary = test_results.get("summary") or test_results.get("report", {}).get("summary", {})
+    failed = summary.get("failed", 0)
     return "reflection" if failed > 0 else "review"
 
 

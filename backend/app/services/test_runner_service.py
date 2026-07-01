@@ -28,10 +28,20 @@ class TestRunnerService:
             with open(report_path, "r") as f:
                 report = json.load(f)
 
+            summary = report.get("summary", {}) if isinstance(report, dict) else {}
+            normalized_summary = {
+                "passed": summary.get("passed", 0),
+                "failed": summary.get("failed", 0),
+                "errors": summary.get("errors", 0),
+                "skipped": summary.get("skipped", 0),
+                "total": summary.get("total", summary.get("collected", 0)),
+            }
+
             return {
                 "stdout": process.stdout,
                 "stderr": process.stderr,
                 "report": report,
+                "summary": normalized_summary,
             }
         finally:
             if os.path.exists(report_path):

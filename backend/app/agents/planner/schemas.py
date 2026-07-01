@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 class PlanStep(BaseModel):
     step: str = Field(..., description="A single step in the execution plan.")
@@ -13,3 +13,4 @@ class ExecutionPlan(BaseModel):
 class PlannerInput(BaseModel):
     github_issue: str
     repository_summary: str
+    plan: Optional[ExecutionPlan] = None

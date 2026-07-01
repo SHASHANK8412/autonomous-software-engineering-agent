@@ -8,7 +8,7 @@ class SearchResult(BaseModel):
     code_snippet: str = Field(..., description="A snippet of the relevant code.")
 
 class RepositorySearchInput(PlannerInput):
-    pass
+    relevant_files: List[SearchResult] = Field(default_factory=list, description="Relevant files discovered during repository search.")
 
 class RepositorySearchOutput(BaseModel):
     relevant_files: List[SearchResult] = Field(..., description="A list of relevant files found in the repository.")

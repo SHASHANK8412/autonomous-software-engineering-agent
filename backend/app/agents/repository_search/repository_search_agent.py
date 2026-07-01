@@ -25,32 +25,23 @@ class RepositorySearchAgent:
         return graph.compile()
 
     def _repository_search_node(self, state: RepositorySearchInput):
-        # Use the Gemini service to create an embedding for the issue.
         gemini_service = get_gemini_service()
-        query_embedding = gemini_service.generate_content(f"Generate an embedding for this issue: {state.github_issue}")
-        
-        # This is a simplified embedding generation. In a real scenario, you would use a proper embedding model.
-        # For demonstration, we'll use a fixed-size vector of zeros.
-        # In a real implementation, the embedding from the Gemini service would be a list of floats.
-        # query_embedding_vector = [0.0] * 768 # Example size
-        
-        # For the purpose of this example, we'll use the text as a stand-in for the embedding vector
-        # as the chromadb client can handle this.
-        
-        # Search ChromaDB
+        query_embedding = gemini_service.embed_text(
+            f"Generate an embedding for this issue: {state.github_issue}"
+        )
+
         search_results = self.vector_db_service.retrieve_relevant_code(
-            collection_name="repository_embeddings", # Assuming a collection name
-            query_embedding=query_embedding, # This would be the actual embedding vector
+            collection_name="repository_embeddings",
+            query_embedding=query_embedding,
             n_results=5
         )
 
-        # Format the results
         relevant_files = []
         if search_results and search_results.get("documents"):
             for i, doc in enumerate(search_results["documents"][0]):
                 relevant_files.append({
                     "file_path": search_results["metadatas"][0][i].get("file_path", "Unknown"),
-                    "confidence_score": 1 - search_results["distances"][0][i], # Convert distance to score
+                    "confidence_score": 1 - search_results["distances"][0][i],
                     "code_snippet": doc
                 })
 

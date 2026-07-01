@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { MetricCard } from '../components/MetricCard';
 import { useWorkflowStream } from '../hooks/useWorkflowStream';
+import { api } from '../lib/api';
 
 function ProgressBar({ progress }: { progress: number }) {
   return (
@@ -11,7 +13,23 @@ function ProgressBar({ progress }: { progress: number }) {
 
 export function DashboardPage() {
   const { workflowStatus, logs, repositorySummary, issues, history, connected } = useWorkflowStream();
+  const [isStarting, setIsStarting] = useState(false);
   const progress = workflowStatus?.progress ?? 0;
+
+  const handleStartWorkflow = async () => {
+    try {
+      setIsStarting(true);
+      await api.startWorkflow(
+        'Fix: Implement user authentication with OAuth2',
+        'A Node.js + Express backend with React frontend. Uses PostgreSQL for user data.'
+      );
+    } catch (error) {
+      console.error('Failed to start workflow:', error);
+      alert('Failed to start workflow. Check console for details.');
+    } finally {
+      setIsStarting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -38,6 +56,15 @@ export function DashboardPage() {
               <span>{workflowStatus?.updated_at ? new Date(workflowStatus.updated_at).toLocaleString() : '—'}</span>
             </div>
           </div>
+          {progress === 0 && (
+            <button
+              onClick={handleStartWorkflow}
+              disabled={isStarting}
+              className="mt-6 w-full rounded-xl bg-gradient-to-r from-mint to-emerald-400 px-4 py-2 font-semibold text-ink-950 hover:shadow-lg disabled:opacity-50 transition-all"
+            >
+              {isStarting ? 'Starting Workflow...' : 'Start Workflow'}
+            </button>
+          )}
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-glow">
